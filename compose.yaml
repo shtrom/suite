@@ -1,0 +1,81 @@
+services:
+  reverse-proxy:
+    healthcheck: 
+      test: [ "CMD", "wget", "-qO/dev/null", "http://localhost:8080/api/overview" ]
+    image: traefik:3
+    labels:
+      - traefik.http.routers.reverse-proxy.rule=Host(`dash.localhost`)
+      - traefik.http.services.reverse-proxy.loadbalancer.server.port=8080
+    networks:
+      - default
+      - suite
+    ports:
+      - '80:80'
+      - '443:443'
+      - '3306:3306'
+      - '5432:5432'
+      - '8080:8080'
+    volumes:
+      - ./docker/traefik:/etc/traefik
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  # lando.test:
+  #   labels:
+  #     - traefik.http.routers.lando-test.rule=Host(`lando.localhost`)
+  #     - traefik.http.services.lando-test.loadbalancer.server.port=443
+  #     - traefik.http.services.lando-test.loadbalancer.server.scheme=https
+  #     - traefik.http.routers.lando-test.entrypoints=websecure
+  #     - traefik.http.routers.lando-test.tls=true
+  lando:
+    labels:
+      - traefik.http.routers.lando-test.rule=Host(`lando.localhost`)
+      - traefik.http.routers.lando-test.entrypoints=web
+      # - traefik.http.routers.lando-test.tls=true
+
+  lando.celery:
+    labels:
+      - traefik.enable=false
+  lando.hg-landing-worker:
+    labels:
+      - traefik.enable=false
+  lando.db:
+    labels:
+      # - traefik.tcp.routers.lando-db.rule=HostSNI(`lando.db.localhost`)
+      - traefik.tcp.routers.lando-db.rule=HostSNI(`*`)
+      - traefik.tcp.routers.lando-db.tls=true
+      - traefik.tcp.routers.lando-db.entrypoints=postgres
+      - traefik.tcp.services.lando-db.loadbalancer.server.port=5432
+
+  phab.db:
+    labels:
+      - traefik.tcp.routers.phab-db.rule=HostSNI(`phab.db.localhost`)
+      - traefik.tcp.routers.phab-db.tls=true
+      - traefik.tcp.routers.phab-db.entrypoints=mysql
+      - traefik.tcp.services.phab-db.loadbalancer.server.port=3306
+
+  bmo.db:
+    labels:
+      - traefik.tcp.routers.bmo-db.rule=HostSNI(`bmo.db.localhost`)
+      - traefik.tcp.routers.bmo-db.tls=true
+      - traefik.tcp.routers.bmo-db.entrypoints=mysql
+      - traefik.tcp.services.bmo-db.loadbalancer.server.port=3306
+
+  autoland.hg:
+    labels:
+      - traefik.enable=false
+  autoland.hg-init:
+    labels:
+      - traefik.enable=false
+  autoland.treestatus:
+    labels:
+      - traefik.enable=false
+
+  local-dev:
+    labels:
+      - traefik.enable=false
+
+
+
+networks:
+  suite:
+    driver: bridge
