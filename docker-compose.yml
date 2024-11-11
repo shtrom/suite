@@ -180,8 +180,8 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports:
-      - 5432:5432
+    expose:
+      - 5432
     volumes:
       - lando-postgres-db:/var/lib/postgresql/data
     healthcheck:
@@ -243,8 +243,6 @@ services:
       timeout: 120s
       retries: 13
     restart: on-failure
-    ports:
-      - "3306:3306"
 
   ###############################
   # Transplant services
